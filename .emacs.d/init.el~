@@ -1,0 +1,30 @@
+;;(require 'cask "/usr/local/Cellar/cask/0.8.1/cask.el")
+;;(cask-initialize)
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/") t)
+(when (< emacs-major-version 24)
+  ;; For important compatibility libraries like cl-lib
+  (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/")))
+(package-initialize)
+
+;; enable line numbers
+(global-linum-mode 1)
+
+;; load color theme
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
+(load-theme 'noctilux t)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (docker docker-api dockerfile-mode elixir-yasnippets elm-mode elm-yasnippets erlang evil-nerd-commenter flycheck-mix flycheck-swift flymake-css flymake-jslint flymake-json flymake-less flymake-sass fontawesome grails groovy-mode helm-spotify helm-spotify-plus jar-manifest-mode javadoc-lookup json-reformat magit tern tern-auto-complete angular-mode angular-snippets ant anything anything-git-files anything-project auto-complete autopair bundler cheatsheet circe clang-format css-comb ctags-update cucumber-goto-step devdocs alchemist yasnippet switch-window solarized-theme pandoc pallet org neotree mentor melpa-upstream-visit json-mode js2-mode indent-guide helm flymake-yaml flymake-rust flymake-jshint flymake-google-cpplint flymake-go flymake-elixir flymake-cppcheck flycheck-swift3 flycheck-rust flycheck-elm flycheck-elixir flycheck-demjsonlint flycheck-cstyle flycheck-css-colorguard flycheck-credo))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
