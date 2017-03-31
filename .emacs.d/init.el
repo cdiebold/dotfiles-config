@@ -4,6 +4,8 @@
              '("melpa" . "http://melpa.org/packages/") t)
 (package-initialize)
 
+;; disable the startup message
+(setq inhibit-startup-message t)
 ;;; Bootstrap use-package
 ;; Install use-package if it's not already installed.
 ;; use-package is used to configure the rest of the packages.
@@ -11,6 +13,13 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
+
+(use-package try 
+  :ensure t)
+(use-package which-key
+  :ensure t
+  :config
+  (which-key-mode))
 ;; From use-package README
 (eval-when-compile
   (require 'use-package))

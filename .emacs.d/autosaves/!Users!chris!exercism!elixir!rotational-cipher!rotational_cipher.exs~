@@ -1,4 +1,6 @@
 defmodule RotationalCipher do
+ lowercase_alphabet = [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z]
+ uppercase_alphabet = Enum.map(lowercase_alphabet, fn(item) -> item.upcase  end)
   @doc """
   Given a plaintext and amount to shift by, return a rotated string.
 
@@ -8,6 +10,16 @@ defmodule RotationalCipher do
   """
   @spec rotate(text :: String.t(), shift :: integer) :: String.t()
   def rotate(text, shift) do
+    rotational_result  =""
+
+    Enum.map(text, fn(item) -> end)
+      rotational_result 
+     #   |> 
+    
+  end
+
+  def lookup(letter, alphabet) do
+     Enum.find_index(alphabet, fn(item) -> (item + shift) % 26 end)
   end
 end
 
