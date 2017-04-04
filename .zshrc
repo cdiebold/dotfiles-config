@@ -52,10 +52,32 @@ ZSH_THEME="simple"
 plugins=(git rails ruby bundler git-extras)
 
 # User configuration
-export GOPATH=/Users/chris/Developer/go_code
+export GOPATH=${HOME}/Developer/go_code
+export SDK_HOME=${HOME}.sdk/candidates
+export GRIFFON=${SDK_HOME}/griffon/current/bin
+export GRAILS=${SDK_HOME}/grails/current/bin
+export MAVEN=${SDK_HOME}/maven/current/bin
+export GRADLE=${SDK_HOME}/gradle/current/bin
+export GROOVY=${SDK_HOME}/groovy/current/bin
+export RUBY_GEMS=${HOME}/.rvm/gems/ruby-2.3.0/bin
+export RUBY_GEMS_LOCAL=${HOME}/.rvm/gems/ruby-2.3.0@global/bin
+export RUBY=${HOME}/.rvm/rubies/ruby-2.3.0/bin
+export TEX=/Library/TeX/texbin
+
 DEFAULT_USER=chris
-export PATH="$HOME/bin:/usr/local/bin:$PATH:/Users/chris/.sdkman/candidates/griffon/current/bin:/Users/chris/.sdkman/candidates/grails/current/bin:/Users/chris/.sdkman/candidates/maven/current/bin:/Users/chris/.sdkman/candidates/gradle/current/bin:/Users/chris/.sdkman/candidates/groovy/current/bin:/Users/chris/.rvm/gems/ruby-2.3.0/bin:/Users/chris/.rvm/gems/ruby-2.3.0@global/bin:/Users/chris/.rvm/rubies/ruby-2.3.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/Users/chris/.rvm/bin:/usr/local/share/dotnet:$GOPATH/bin"
+export PATH="$HOME/bin:/usr/local/bin:$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/chris/.rvm/bin:/usr/local/share/dotnet"
 # export MANPATH="/usr/local/man:$MANPATH"
+export PATH=$PATH:${GRIFFON}
+export PATH=$PATH:${GRAILS}
+export PATH=$PATH:${MAVEN}
+export PATH=$PATH:${GRADLE}
+export PATH=$PATH:${GROOVY}
+export PATH=$PATH:${RUBY_GEMS}
+export PATH=$PATH:${RUBY_GEMS_LOCAL}
+export PATH=$PATH:${RUBY}
+export PATH=$PATH:${TEX}
+export PATH=$PATH:${GOPATH}/bin
+
 
 source $ZSH/oh-my-zsh.sh
 

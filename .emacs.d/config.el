@@ -1,3 +1,6 @@
+(global-auto-revert-mode 1) 
+(add-hook 'dired-mode-hook 'auto-revert-mode)
+
 (defalias 'yes-or-no-p 'y-or-n-p)
 ;; Allow pasting selection outside of Emacs
 (setq x-select-enable-clipboard t)
@@ -67,23 +70,8 @@
       color-theme-is-global t
       truncate-partial-width-windows nil)
 
-;; Don't beep. Don't visible-bell (fails on el capitan). Just blink the modeline on errors.
-
-(setq visible-bell nil)
-(setq ring-bell-function (lambda ()
-                           (invert-face 'mode-line)
-                           (run-with-timer 0.05 nil 'invert-face 'mode-line)))
-
 ;; Highlight current line
 (global-hl-line-mode 1)
-
-;; Set custom theme path
-(setq custom-theme-directory (concat user-emacs-directory "themes"))
-
-(dolist
-    (path (directory-files custom-theme-directory t "\\w+"))
-  (when (file-directory-p path)
-    (add-to-list 'custom-theme-load-path path)))
 
 ;; Don't defer screen updates when performing operations
 (setq redisplay-dont-pause t)
@@ -137,10 +125,14 @@
            show-paren-mode))            ; Highlight matching parentheses
   (funcall mode 1))
 
+(use-package color-theme
+  :ensure t)
+
 (use-package org-bullets
-:ensure t
-:config
-(add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
+ :ensure t
+ :config
+ (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1)))
+)
 
 (use-package git-gutter-fringe  ; git gutter in line num col
 :ensure t)
@@ -152,10 +144,16 @@
 :ensure t)
 
 (use-package flycheck ; syntax checker like syntasitc in vim
-:ensure t)
+:ensure t
+:init
+(global-flycheck-mode)
+)
 
 (use-package yasnippet ; snipper manager
-:ensure t)
+:ensure t
+:init
+  (yas-global-mode 1)
+)
 
 (use-package projectile ; project manager
 :ensure t)
@@ -199,9 +197,6 @@
 :ensure t)
 
 (use-package sass-mode
-:ensure t)
-
-(use-package go-mode ; go programming major mode
 :ensure t)
 
 (use-package elixir-mode

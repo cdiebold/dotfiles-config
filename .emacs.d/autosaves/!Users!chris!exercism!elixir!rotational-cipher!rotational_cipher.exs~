@@ -10,11 +10,13 @@ defmodule RotationalCipher do
   """
   @spec rotate(text :: String.t(), shift :: integer) :: String.t()
   def rotate(text, shift) do
+    text
+     |> Enum.find_index(
     rotational_result  =""
 
     Enum.map(text, fn(item) -> end)
       rotational_result 
-     #   |> 
+      #   |> 
     
   end
 
