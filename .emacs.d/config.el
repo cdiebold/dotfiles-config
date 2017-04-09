@@ -1,3 +1,15 @@
+(setq user-full-name "Chris Diebold"
+      user-mail-address "cdiebold2012@gmail.com")
+
+;  (unless (package-installed-p 'use-package)
+ ;   (package-install 'use-package))
+  ;(setq use-package-verbose t)
+ ; (setq use-package-always-ensure t)
+ ; (require 'use-package)
+ ; (use-package auto-compile
+  ;  :config (auto-compile-on-load-mode))
+ ; (setq load-prefer-newer t)
+
 (global-auto-revert-mode 1) 
 (add-hook 'dired-mode-hook 'auto-revert-mode)
 
@@ -65,16 +77,80 @@
 
 (add-to-list 'find-file-not-found-functions 'my-create-non-existent-directory)
 
-(set-default-font "Menlo 14")
-(setq font-lock-maximum-decoration t
-      color-theme-is-global t
-      truncate-partial-width-windows nil)
+(tool-bar-mode 0)
+(menu-bar-mode 0)
+(when window-system
+  (scroll-bar-mode -1))
+
+(global-prettify-symbols-mode t)
+
+(setq ccd/default-font "Inconsolata")
+(setq ccd/default-font-size 14)
+(setq ccd/font-change-increment 1.3)
+
+(defun ccd/set-font-size()
+"Set the font to `ccd/default-font' at `ccd/current-font-size'."
+(set-frame-font
+(concat ccd/default-font "-" (number-to-string ccd/current-font-size))))
+
+(defun ccd/reset-font-size()
+"Change font size back to `ccd/default-font-size'."
+(interactive)
+(setq ccd/current-font-size ccd/default-font-size)
+(ccd/set-font-size))
+
+(defun ccd/increase-font-size()
+"Increase current font size by a factor of `ccd/font-change-increment'."
+(setq ccd/current-font-size
+      (ceiling (* ccd/current-font-size ccd/font-change-increment)))
+(ccd/set-font-size))
+
+(defun ccd/decrease-font-size()
+"Decrease current font size by a factor of `ccd/font-change-increment'."
+(interactive)
+(setq ccd/current-font-size
+      (max 1
+           (floor(/ ccd/current-font-size ccd/font-change-increment))))
+(ccd/set-font-size))
+
+(define-key global-map (kbd "C-)") 'ccd/reset-font-size)
+(define-key global-map (kbd "C-+") 'ccd/increase-font-size)
+(define-key global-map (kbd "C-=") 'ccd/increase-font-size)
+(define-key global-map (kbd "C-_") 'ccd/decrease-font-size)
+(define-key global-map (kbd "C--") 'ccd/decrease-font-size)
+
+(ccd/reset-font-size)
 
 ;; Highlight current line
-(global-hl-line-mode 1)
+(when window-system
+  (global-hl-line-mode))
 
 ;; Don't defer screen updates when performing operations
 (setq redisplay-dont-pause t)
+
+(use-package diminish
+   :ensure t)
+
+ (defmacro diminish-minor-mode (filename mode &optional abbrev)
+ `(eval-after-load (symbol-name ,filename)
+    '(diminish ,mode ,abbrev)))
+(defmacro diminish-major-mode (mode-hook abbrev)
+ `(add-hook ,mode-hook
+            (lambda () (setq mode-name ,abbrev))))
+
+ (diminish-minor-mode 'abbrev 'abbrev-mode)
+ (diminish-minor-mode 'simple 'auto-fill-function)
+ (diminish-minor-mode 'company 'company-mode)
+ (diminish-minor-mode 'eldoc 'eldoc-mode)
+ (diminish-minor-mode 'flycheck 'flycheck-mode)
+ (diminish-minor-mode 'flyspell 'flyspell-mode)
+ (diminish-minor-mode 'global-whitespace 'global-whitespace-mode)
+ (diminish-minor-mode 'projectile 'projectile-mode)
+ (diminish-minor-mode 'yasnippet 'yas-minor-mode)
+
+ (diminish-major-mode 'go 'go-mode)
+ (diminish-major-mode 'python-mode-hook "Py")
+ (diminish-major-mode 'elixir 'elixir-mode)
 
 (setq locale-coding-system 'utf-8) 
 (set-terminal-coding-system 'utf-8) 
@@ -105,12 +181,6 @@
 (load-theme 'cyberpunk t)
 
 (dolist (mode
-         '(tool-bar-mode                ; No toolbars, more room for text
-           scroll-bar-mode              ; No scroll bars either
-           blink-cursor-mode))          ; The blinking cursor gets old
-  (funcall mode 0))
-
-(dolist (mode
          '(abbrev-mode                  ; E.g. sopl -> System.out.println
            column-number-mode           ; Show column number in mode line
            delete-selection-mode        ; Replace selected text
@@ -118,7 +188,7 @@
 ;           drag-stuff-global-mode       ; Drag stuff around
            global-company-mode          ; Auto-completion everywhere
            global-git-gutter-mode       ; Show changes latest commit
-           global-prettify-symbols-mode ; Greek letters should look greek
+;           global-prettify-symbols-mode ; Greek letters should look greek
            golden-ratio-mode            ; Automatic resizing of windows
            projectile-global-mode       ; Manage and navigate projects
            recentf-mode                 ; Recently opened files
@@ -127,12 +197,6 @@
 
 (use-package color-theme
   :ensure t)
-
-(use-package org-bullets
- :ensure t
- :config
- (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1)))
-)
 
 (use-package git-gutter-fringe  ; git gutter in line num col
 :ensure t)
@@ -166,44 +230,80 @@
 (global-auto-complete-mode t)
 ))
 
-(use-package company 
+(use-package company
 :ensure t)
 
 (use-package helm-projectile
-:ensure t)
+  :ensure t)
 
-(use-package js2-mode ; javascript mode
-:ensure t)
+(use-package js2-mode)
+(use-package tern)
 
-(use-package tern ; javascript completion
-:ensure t)
+(use-package neotree)
+(use-package all-the-icons)
+(global-set-key [f12] 'neotree-toggle)
+(setq neo-theme (if (display-graphic-p) 'icons 'arrow))
 
-(use-package powerline ; pretty mode lines
-:ensure t)
+(use-package evil-nerd-commenter)
 
-(use-package neotree ; show project as a tree
-:ensure t)
+(use-package indent-guide)
 
-(use-package evil-nerd-commenter ; toggle comments in any programming language
-:ensure t)
+(setq-default tab-width 2)
 
-(use-package indent-guide
-:ensure t)
+(setq compilation-scroll-output t)
 
-(use-package golden-ratio ; auto-resizing of buffers
-:ensure t)
+(use-package rainbow-mode
+  :ensure t)
 
-(use-package hl-todo ; highlight TODO and similar tags
-:ensure t)
+(add-hook 'css-mode-hook
+          (lambda()
+            (rainbow-mode)
+            (setq css-indent-offset 2)))
+(add-hook 'scss-mode-hook 'rainbow-mode)
 
-(use-package sass-mode
-:ensure t)
+(setq js-indent-level 2)
+(add-hook 'coffee-mode-hook
+          (lambda()
+            (yas-minor-mode 1)
+            (setq coffee-tab-width 2)))
 
-(use-package elixir-mode
-:ensure t)
+(global-set-key (kbd "C-x g") 'magit-status)
 
-(use-package alchemist ; elixir tooling integration
-:ensure t)
+(setq magit-push-always-verify nil)
+
+(setq python-indent 2)
+
+(add-hook 'web-mode-hook
+          (lambda()
+            (rainbow-mode)
+            (setq web-mode-markup-indent-offset 2)))
+
+(setq org-directory "~/org-docs")
+
+(defun org-file-path (filename)
+"Return the absolute address of an org file, given its relative name"
+(concat (file-name-as-directory org-directory) filename))
+
+(setq org-agenda-files (list org-index-file))
+
+(defun ccd/split-window-below-and-switch()
+"Splits the window horizontally, then switch to the new pane."
+(interactive)
+(split-window-below)
+(balance-windows)
+(other-window 1))
+
+(defun ccd/split-window-right-and-switch()
+"Splits the window vertically, then switch to the new pane."
+(interactive)
+(split-window-right)
+(balance-windows)
+(other-window 1))
+
+(global-set-key (kbd "C-x 2") 'ccd/split-window-below-and-switch)
+(global-set-key (kbd "C-x 3") 'ccd/split-window-right-and-switch)
+
+(use-package sass-mode)
 
 (use-package ace-window
   :ensure t
@@ -241,3 +341,62 @@
    (global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
    (define-key read-expression-map (kbd "C-r") 'counsel-expression-history)
   ))
+
+(use-package ox-reveal
+:ensure ox-reveal)
+(setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
+(setq org-reveal-mathjax t)
+(use-package htmlize)
+
+(use-package go-mode) ; go programming major mode
+  (use-package
+  
+  (use package exec-path-from-shell
+     :ensure t)
+ ;;Load Go-specific language syntax
+(defun go-mode-setup ()
+  (go-eldoc-setup))
+(add-hook 'go-mode-hook 'go-mode-setup)
+;;Format before saving
+(defun go-mode-setup ()
+  (go-eldoc-setup)
+  (add-hook 'before-save-hook 'gofmt-before-save))
+(add-hook 'go-mode-hook 'go-mode-setup)
+;;Goimports
+(defun go-mode-setup ()
+  (go-eldoc-setup)
+  (setq gofmt-command "goimports")
+  (add-hook 'before-save-hook 'gofmt-before-save))
+(add-hook 'go-mode-hook 'go-mode-setup)
+
+;;Godef, shows function definition when calling godef-jump
+(defun go-mode-setup ()
+  (go-eldoc-setup)
+  (setq gofmt-command "goimports")
+  (add-hook 'before-save-hook 'gofmt-before-save)
+  (local-set-key (kbd "M-.") 'godef-jump))
+(add-hook 'go-mode-hook 'go-mode-setup)
+
+;;Custom Compile Command
+(defun go-mode-setup ()
+  (setq compile-command "go build -v && go test -v && golint && errcheck")
+  (define-key (current-local-map) "\C-c\C-c" 'compile)
+  (go-eldoc-setup)
+  (setq gofmt-command "goimports")
+  (add-hook 'before-save-hook 'gofmt-before-save)
+  (local-set-key (kbd "M-.") 'godef-jump))
+(add-hook 'go-mode-hook 'go-mode-setup)
+
+;;Load auto-complete
+(ac-config-default)
+(require 'auto-complete-config)
+(require 'go-autocomplete)
+
+(add-to-list 'load-path (concat (getenv "GOPATH")  "/src/github.com/golang/lint/misc/emacs"))
+(require 'golint)
+
+(use-package org-bullets
+ :ensure t
+ :config
+ (add-hook 'org-mode-hook (lambda() (org-bullets-mode t)))
+)

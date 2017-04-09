@@ -1,3 +1,21 @@
+* Personal Information
+#+BEGIN_SRC emacs-lisp
+  (setq user-full-name "Chris Diebold"
+        user-mail-address "cdiebold2012@gmail.com")
+#+END_SRC
+
+* Package Install Initialization
+I like to always make sure that I have my packages downloaded.
+#+BEGIN_SRC emacs-lisp
+;  (unless (package-installed-p 'use-package)
+ ;   (package-install 'use-package))
+  ;(setq use-package-verbose t)
+ ; (setq use-package-always-ensure t)
+ ; (require 'use-package)
+ ; (use-package auto-compile
+  ;  :config (auto-compile-on-load-mode))
+ ; (setq load-prefer-newer t)
+#+END_SRC
 * Sane Defaults
 *** Revert buffers
 Emacs can refresh buffers and update files if they change on disk. This could be useful 
@@ -76,9 +94,21 @@ you and your changes wont be lost
 (add-to-list 'find-file-not-found-functions 'my-create-non-existent-directory)
 #+END_SRC
 * Appearene
-** set the font and make it a default size
-
-** GUI settings
+** Display preferences
+Hide the toolbar the menubar and scroolbar if on a windowed sytem
+#+BEGIN_SRC emacs-lisp
+  (tool-bar-mode 0)
+  (menu-bar-mode 0)
+  (when window-system
+    (scroll-bar-mode -1))
+#+END_SRC
+** Use fancy symbols
+Why not right??
+#+BEGIN_SRC emacs-lisp
+  (global-prettify-symbols-mode t)
+#+END_SRC
+** Bell
+I do not like the bell, its annoying to say the least. 
 #+BEGIN_SRC emacs lisp
 ;; Don't beep. Don't visible-bell (fails on el capitan). Just blink the modeline on errors.
 
@@ -87,20 +117,86 @@ you and your changes wont be lost
                            (invert-face 'mode-line)
                            (run-with-timer 0.05 nil 'invert-face 'mode-line)))
 #+END_SRC
+** Font preferences
 #+BEGIN_SRC emacs-lisp
-(set-default-font "Menlo 14")
-(setq font-lock-maximum-decoration t
-      color-theme-is-global t
-      truncate-partial-width-windows nil)
+  (setq ccd/default-font "Inconsolata")
+  (setq ccd/default-font-size 14)
+  (setq ccd/font-change-increment 1.3)
 
-;; Highlight current line
-(global-hl-line-mode 1)
+  (defun ccd/set-font-size()
+  "Set the font to `ccd/default-font' at `ccd/current-font-size'."
+  (set-frame-font
+  (concat ccd/default-font "-" (number-to-string ccd/current-font-size))))
 
-;; Don't defer screen updates when performing operations
-(setq redisplay-dont-pause t)
+  (defun ccd/reset-font-size()
+  "Change font size back to `ccd/default-font-size'."
+  (interactive)
+  (setq ccd/current-font-size ccd/default-font-size)
+  (ccd/set-font-size))
+
+  (defun ccd/increase-font-size()
+  "Increase current font size by a factor of `ccd/font-change-increment'."
+  (setq ccd/current-font-size
+        (ceiling (* ccd/current-font-size ccd/font-change-increment)))
+  (ccd/set-font-size))
+
+  (defun ccd/decrease-font-size()
+  "Decrease current font size by a factor of `ccd/font-change-increment'."
+  (interactive)
+  (setq ccd/current-font-size
+        (max 1
+             (floor(/ ccd/current-font-size ccd/font-change-increment))))
+  (ccd/set-font-size))
+
+  (define-key global-map (kbd "C-)") 'ccd/reset-font-size)
+  (define-key global-map (kbd "C-+") 'ccd/increase-font-size)
+  (define-key global-map (kbd "C-=") 'ccd/increase-font-size)
+  (define-key global-map (kbd "C-_") 'ccd/decrease-font-size)
+  (define-key global-map (kbd "C--") 'ccd/decrease-font-size)
+
+  (ccd/reset-font-size)
+#+END_SRC
+** Highlight current line
+`global-hl-line-mode' softly highlights the background color of the line containing the point.
+It is a bit easier to find the point and it's useful when pairing or presenting code.
+#+BEGIN_SRC emacs-lisp
+  ;; Highlight current line
+  (when window-system
+    (global-hl-line-mode))
+    
+  ;; Don't defer screen updates when performing operations
+  (setq redisplay-dont-pause t)
 
 #+END_SRC
+** Hide certain modes from the modeline
+I'd rather have only a few necessary mode identifiers on my modeline. 
+This either hides or renames a variety of major or minor modes using the `diminish' package.
+#+BEGIN_SRC emacs-lisp
+  (use-package diminish
+    :ensure t)
 
+  (defmacro diminish-minor-mode (filename mode &optional abbrev)
+  `(eval-after-load (symbol-name ,filename)
+     '(diminish ,mode ,abbrev)))
+ (defmacro diminish-major-mode (mode-hook abbrev)
+  `(add-hook ,mode-hook
+             (lambda () (setq mode-name ,abbrev))))
+ 
+  (diminish-minor-mode 'abbrev 'abbrev-mode)
+  (diminish-minor-mode 'simple 'auto-fill-function)
+  (diminish-minor-mode 'company 'company-mode)
+  (diminish-minor-mode 'eldoc 'eldoc-mode)
+  (diminish-minor-mode 'flycheck 'flycheck-mode)
+  (diminish-minor-mode 'flyspell 'flyspell-mode)
+  (diminish-minor-mode 'global-whitespace 'global-whitespace-mode)
+  (diminish-minor-mode 'projectile 'projectile-mode)
+  (diminish-minor-mode 'yasnippet 'yas-minor-mode)
+
+  (diminish-major-mode 'go 'go-mode)
+  (diminish-major-mode 'python-mode-hook "Py")
+  (diminish-major-mode 'elixir 'elixir-mode)
+
+#+END_SRC
 ** Encoding 
 All encoding should be utf-8: see http://utf8everywhere.org
 
@@ -129,7 +225,6 @@ Those ~file names can clutter up your directories. Move them to thier own
 
 #+END_SRC
 
-
 ** Theme
 #+BEGIN_SRC emacs-lisp
 ;; Set custom theme path
@@ -148,12 +243,6 @@ Those ~file names can clutter up your directories. Move them to thier own
 Modes that are set by default
 #+BEGIN_SRC emacs-lisp
 (dolist (mode
-         '(tool-bar-mode                ; No toolbars, more room for text
-           scroll-bar-mode              ; No scroll bars either
-           blink-cursor-mode))          ; The blinking cursor gets old
-  (funcall mode 0))
-
-(dolist (mode
          '(abbrev-mode                  ; E.g. sopl -> System.out.println
            column-number-mode           ; Show column number in mode line
            delete-selection-mode        ; Replace selected text
@@ -161,7 +250,7 @@ Modes that are set by default
 ;           drag-stuff-global-mode       ; Drag stuff around
            global-company-mode          ; Auto-completion everywhere
            global-git-gutter-mode       ; Show changes latest commit
-           global-prettify-symbols-mode ; Greek letters should look greek
+;           global-prettify-symbols-mode ; Greek letters should look greek
            golden-ratio-mode            ; Automatic resizing of windows
            projectile-global-mode       ; Manage and navigate projects
            recentf-mode                 ; Recently opened files
@@ -169,8 +258,8 @@ Modes that are set by default
   (funcall mode 1))
 
 #+END_SRC
-* Packag
-es
+* Packages
+  e
 I tend to like lots of packages to make emacs easier to look at and code with.
 ** color themes
 Color themes are nice and I am addicted to it. I get bored with the same confiuration and sometimes need a change.
@@ -180,14 +269,6 @@ Color themes are nice and I am addicted to it. I get bored with the same confiur
   :ensure t)
 
 #+END_SRC
-** Org mode bullets
-   #+BEGIN_SRC emacs-lisp
-   (use-package org-bullets
-    :ensure t
-    :config
-    (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1)))
-   )
-   #+END_SRC
 ** Git gutter
    #+BEGIN_SRC emacs-lisp
    (use-package git-gutter-fringe  ; git gutter in line num col
@@ -225,7 +306,7 @@ Color themes are nice and I am addicted to it. I get bored with the same confiur
    (use-package projectile ; project manager
    :ensure t)
    #+END_SRC
-
+** Autocomplete
 #+BEGIN_SRC emacs-lisp
 
 (use-package auto-complete ; text auto-completion
@@ -235,45 +316,143 @@ Color themes are nice and I am addicted to it. I get bored with the same confiur
 (ac-config-default)
 (global-auto-complete-mode t)
 ))
+#+END_SRC
+** Company mode
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+  :ensure t)
+#+END_SRC
+** Helm Projectile
+#+BEGIN_SRC emacs-lisp
+  (use-package helm-projectile
+    :ensure t)
+#+END_SRC
+** Javascript mode
+   #+BEGIN_SRC emacs-lisp
+     (use-package js2-mode)
+    (use-package tern) 
+   #+END_SRC
 
-(use-package company 
-:ensure t)
+** Neotree
+#+BEGIN_SRC emacs-lisp
+  (use-package neotree)
+  (use-package all-the-icons)
+  (global-set-key [f12] 'neotree-toggle)
+  (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
 
-(use-package helm-projectile
-:ensure t)
+#+END_SRC
+** NERDTree commenter
+#+BEGIN_SRC emacs-lisp
+  (use-package evil-nerd-commenter)
+#+END_SRC
+** Indent guides
+#+BEGIN_SRC emacs-lisp
+  (use-package indent-guide)
+#+END_SRC
+  
+* Programming Customizations
+Use shallow indentation, but tabs are displayed as 8 characters by default.
+#+BEGIN_SRC emacs-lisp
+  (setq-default tab-width 2)
+#+END_SRC
 
-(use-package js2-mode ; javascript mode
-:ensure t)
+Compilation output goes to the *compilation* buffer.
+ I rarely have that window selected, so the compilation output disappears past the bottom of the window.
+This automatically scrolls the compilation window so I can see the outoput.
 
-(use-package tern ; javascript completion
-:ensure t)
+#+BEGIN_SRC emacs-lisp
+  (setq compilation-scroll-output t)
+#+End_SRC
 
-(use-package powerline ; pretty mode lines
-:ensure t)
+** CSS and SASS
+Indent 2 spaces and use rainbow-mode to display color-related words in the color they describe.
+#+BEGIN_SRC emacs-lisp
+  (use-package rainbow-mode
+    :ensure t)
 
-(use-package neotree ; show project as a tree
-:ensure t)
+  (add-hook 'css-mode-hook
+            (lambda()
+              (rainbow-mode)
+              (setq css-indent-offset 2)))
+  (add-hook 'scss-mode-hook 'rainbow-mode)
+#+END_SRC
 
-(use-package evil-nerd-commenter ; toggle comments in any programming language
-:ensure t)
+** Javascript and CoffeeScript
+Indent everything by 2 spaces
+#+BEGIN_SRC emacs-lisp
+  (setq js-indent-level 2)
+  (add-hook 'coffee-mode-hook
+            (lambda()
+              (yas-minor-mode 1)
+              (setq coffee-tab-width 2)))
 
-(use-package indent-guide
-:ensure t)
+#+END_SRC
 
-(use-package golden-ratio ; auto-resizing of buffers
-:ensure t)
+** Magit
+I bring up the status menu with `C-x g':
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-x g") 'magit-status)
+#+END_SRC
 
-(use-package hl-todo ; highlight TODO and similar tags
-:ensure t)
+The default behavior for magit is to ask before pushing. I dont klike that, just push!
+#+BEGIN_SRC emacs-lisp
+  (setq magit-push-always-verify nil)
+#+END_SRC
 
-(use-package sass-mode
-:ensure t)
+** Python
+Indent 2 spaces
+#+BEGIN_SRC emacs-lisp
+  (setq python-indent 2)
+#+END_SRC
+** Web Mode
+if I am in web mode, I'd like to:
+- Color color-related words with rainbow-mode
+- indent everything by 2 spaces
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'web-mode-hook
+            (lambda()
+              (rainbow-mode)
+              (setq web-mode-markup-indent-offset 2)))
+#+END_SRC
 
-(use-package elixir-mode
-:ensure t)
+* Publishing and taskmanagement with Org-mode
+Store my org files in ~/org
+#+BEGIN_SRC emacs-lisp
+  (setq org-directory "~/org-docs")
 
-(use-package alchemist ; elixir tooling integration
-:ensure t)
+  (defun org-file-path (filename)
+  "Return the absolute address of an org file, given its relative name"
+  (concat (file-name-as-directory org-directory) filename))
+#+END_SRC
+
+* Switch and rebalance windows when splitting
+
+#+BEGIN_SRC emacs-lisp
+  (defun ccd/split-window-below-and-switch()
+  "Splits the window horizontally, then switch to the new pane."
+  (interactive)
+  (split-window-below)
+  (balance-windows)
+  (other-window 1))
+
+  (defun ccd/split-window-right-and-switch()
+  "Splits the window vertically, then switch to the new pane."
+  (interactive)
+  (split-window-right)
+  (balance-windows)
+  (other-window 1))
+
+  (global-set-key (kbd "C-x 2") 'ccd/split-window-below-and-switch)
+  (global-set-key (kbd "C-x 3") 'ccd/split-window-right-and-switch)
+#+END_SRC
+
+** Sass Mode
+#+BEGIN_SRC emacs-lisp
+  (use-package sass-mode)
+#+END_SRC
+#+BEGIN_SRC elixir
+ (use-package elixir-mode)
+  (use-package alchemist)
 #+END_SRC
 
 ** ace window
@@ -325,39 +504,30 @@ Swiper allows us to search using ivy instead of isearch.
 #+BEGIN_SRC emacs-lisp
 (use-package ox-reveal
 :ensure ox-reveal)
-
 (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
 (setq org-reveal-mathjax t)
-
-(use-package htmlize
-:ensure t)
-
-#+END_S
+(use-package htmlize)
+#+END_SRC
 
 ** Go Mode
 Go is a major mode within emacs and the go toolchain has some useful 
 workflow methids to setup
 This will allow Emacs to find goDoc
 #+BEGIN_SRC emacs-lisp
-  (use-package go-mode ; go programming major mode
-:ensure t)
+  (use-package go-mode) ; go programming major mode
   (use-package
   
   (use package exec-path-from-shell
      :ensure t)
-
  ;;Load Go-specific language syntax
 (defun go-mode-setup ()
   (go-eldoc-setup))
-
 (add-hook 'go-mode-hook 'go-mode-setup)
-
 ;;Format before saving
 (defun go-mode-setup ()
   (go-eldoc-setup)
   (add-hook 'before-save-hook 'gofmt-before-save))
 (add-hook 'go-mode-hook 'go-mode-setup)
-
 ;;Goimports
 (defun go-mode-setup ()
   (go-eldoc-setup)
@@ -392,4 +562,11 @@ This will allow Emacs to find goDoc
 (require 'golint)
  
 #+END_SRC
-
+** Org mode bullets
+   #+BEGIN_SRC emacs-lisp
+   (use-package org-bullets
+    :ensure t
+    :config
+    (add-hook 'org-mode-hook (lambda() (org-bullets-mode t)))
+   )
+   #+END_SRC
